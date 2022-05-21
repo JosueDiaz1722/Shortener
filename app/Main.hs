@@ -7,4 +7,4 @@ import Shortener (shortener)
 
 
 main :: IO ()
-main = run 8081 app
+main = run 8082 app

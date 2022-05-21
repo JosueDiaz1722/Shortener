@@ -18,7 +18,7 @@ import Control.Monad.Reader
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Attoparsec.ByteString
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, append)
 import Data.List
 import Data.Maybe
 import Data.String.Conversions
@@ -42,7 +42,6 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Data.Map as M
 import Data.Text
 import Control.Monad (forM_)
-import ApiType (URL)
 
 
 
@@ -52,11 +51,6 @@ import ApiType (URL)
 type API = Get '[HTML] Homepage
 type Homepage = H.Html
 
-api :: Proxy API
-api = Proxy
-
-server :: Server API
-server = return myHome
 
 myHome :: Homepage
 myHome = 
@@ -66,21 +60,57 @@ myHome =
             H.form H.! A.method "post" H.! A.action "/" $ do
               H.input H.! A.type_ "text" H.! A.name "url"
               H.input H.! A.type_ "submit"
-            H.table $
-              forM_(url1) $ \(url) ->
-                H.tr $ do
-                  H.td (H.text url)
+            -- H.table $
+            --   forM_(url1) $ \(url) ->
+            --     H.tr $ do
+            --       H.td (H.text url)
 app :: Application
 app = serve api server
 
-data Url = Url
-  { url :: String
-  }
+
+
+type UrlsAPI =  Get '[HTML] Homepage
+            :<|> "urls"
+            :> Get '[JSON] [Url_dateType]
+            :<|> 
+            ReqBody '[JSON] Url_dateType
+            :> Post '[JSON] Url_dateType
+            
+
+api :: Proxy UrlsAPI
+api = Proxy
+
+server :: Server UrlsAPI
+server = return myHome :<|> return urlList :<|> add_url
 
 
 
-url1 :: [Text] 
-url1 =  ["a", "b"]
+data Url_dateType = Url_dateType
+  { url :: Text
+  }deriving (Eq, Show, Generic)
+instance ToJSON Url_dateType
+instance FromJSON Url_dateType
+
+
+
+
+urlList :: [Url_dateType]
+urlList =
+  [ Url_dateType "Isaac Newton"
+  , Url_dateType "Albert Einstein"
+  ]
+
+addUrlHandler :: Url_dateType -> [Url_dateType] -> [Url_dateType]
+-- addUrlHandler new_url  [] = [new_url]
+-- addUrlHandler new_url [x:xs] = x: addUrlHandler new_url xs
+addUrlHandler a xs = xs ++ [a]
+
+
+add_url :: Url_dateType -> Handler Url_dateType
+-- add_url newurl = return (addUrlHandler (string_to_url newurl) urlList)
+add_url newurl = return newurl
+string_to_url :: Text -> Url_dateType
+string_to_url url_path = Url_dateType url_path
 -- data Url = Url
 --   { url :: String
 --   } deriving (Eq, Show, Generic)
