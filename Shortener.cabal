@@ -13,7 +13,6 @@ author:         Author name here
 maintainer:     example@example.com
 copyright:      2022 Author name here
 license:        BSD3
-license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
@@ -24,15 +23,31 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      ApiType
+      Server
+      Shortener
   other-modules:
       Paths_Shortener
   hs-source-dirs:
       src
   build-depends:
       aeson
+    , attoparsec
     , base >=4.7 && <5
+    , base-compat
+    , blaze-html
+    , blaze-markup
+    , bytestring
+    , containers
+    , directory
+    , http-media
+    , lucid
+    , mtl
+    , network-uri
+    , servant
+    , servant-blaze
     , servant-server
+    , string-conversions
     , text
     , time
     , wai
@@ -49,8 +64,22 @@ executable Shortener-exe
   build-depends:
       Shortener
     , aeson
+    , attoparsec
     , base
+    , base-compat
+    , blaze-html
+    , blaze-markup
+    , bytestring
+    , containers
+    , directory
+    , http-media
+    , lucid
+    , mtl
+    , network-uri
+    , servant
+    , servant-blaze
     , servant-server
+    , string-conversions
     , text
     , time
     , wai
@@ -68,11 +97,25 @@ test-suite Shortener-test
   build-depends:
       Shortener
     , aeson
+    , attoparsec
     , base
+    , base-compat
+    , blaze-html
+    , blaze-markup
+    , bytestring
+    , containers
+    , directory
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , http-media
+    , lucid
+    , mtl
+    , network-uri
+    , servant
+    , servant-blaze
     , servant-server
+    , string-conversions
     , text
     , time
     , wai

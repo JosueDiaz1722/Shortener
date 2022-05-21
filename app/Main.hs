@@ -1,6 +1,10 @@
 module Main where
+import Network.Wai.Handler.Warp
+import Server
+import Shortener (shortener)
 
-import Lib
+
+
 
 main :: IO ()
-main = startApp
+main = run 8081 app
