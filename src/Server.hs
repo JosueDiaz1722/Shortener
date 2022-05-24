@@ -42,7 +42,8 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Data.Map as M
 import Data.Text
 import Control.Monad (forM_)
-
+import Web.FormUrlEncoded(FromForm(..), ToForm(..))
+import qualified Data.Text as T
 
 
 
@@ -58,71 +59,56 @@ myHome =
         H.body $ do
             H.h1 "Shortener"
             H.form H.! A.method "post" H.! A.action "/" $ do
-              H.input H.! A.type_ "text" H.! A.name "url"
-              H.input H.! A.type_ "submit"
-            -- H.table $
-            --   forM_(url1) $ \(url) ->
-            --     H.tr $ do
-            --       H.td (H.text url)
+              H.input H.! A.type_ "text" H.! A.name "url_path"
+              H.input H.! A.type_ "submit" ! A.action "/urls"
+            H.table $
+              forM_(urlList2) $ \(url) ->
+                  H.tr $ do
+                  H.td (H.text (print_url url))
 app :: Application
 app = serve api server
 
 
+print_url :: URL_data_type -> Text
+print_url =  url_path
+
+
+data URL_data_type = URL_data_type
+ { url_path    :: !T.Text
+ } deriving (Eq, Show, Generic)
+
+instance FromForm URL_data_type
+instance ToJSON URL_data_type
+instance FromJSON URL_data_type
 
 type UrlsAPI =  Get '[HTML] Homepage
             :<|> "urls"
-            :> Get '[JSON] [Url_dateType]
+            :> Get '[JSON] [URL_data_type]
             :<|> 
-            ReqBody '[JSON] Url_dateType
-            :> Post '[JSON] Url_dateType
+            ReqBody '[FormUrlEncoded] URL_data_type
+            :> Post '[HTML] Homepage
             
 
 api :: Proxy UrlsAPI
 api = Proxy
 
 server :: Server UrlsAPI
-server = return myHome :<|> return urlList :<|> add_url
+server = return myHome :<|> return urlList2 :<|> add_url2
 
-
-
-data Url_dateType = Url_dateType
-  { url :: Text
-  }deriving (Eq, Show, Generic)
-instance ToJSON Url_dateType
-instance FromJSON Url_dateType
-
-
-
-
-urlList :: [Url_dateType]
-urlList =
-  [ Url_dateType "Isaac Newton"
-  , Url_dateType "Albert Einstein"
+urlList2 :: [URL_data_type]
+urlList2 =
+  [ URL_data_type "Isaac Newton"
+  , URL_data_type "Albert Einstein"
   ]
 
-addUrlHandler :: Url_dateType -> [Url_dateType] -> [Url_dateType]
--- addUrlHandler new_url  [] = [new_url]
--- addUrlHandler new_url [x:xs] = x: addUrlHandler new_url xs
-addUrlHandler a xs = xs ++ [a]
 
 
-add_url :: Url_dateType -> Handler Url_dateType
--- add_url newurl = return (addUrlHandler (string_to_url newurl) urlList)
-add_url newurl = return newurl
-string_to_url :: Text -> Url_dateType
-string_to_url url_path = Url_dateType url_path
--- data Url = Url
---   { url :: String
---   } deriving (Eq, Show, Generic)
+add_url2 :: Monad m => URL_data_type -> m Homepage
+add_url2 url = redirect (addUrlHandler urlList2 url)
 
--- instance ToJSON Url
+redirect :: Monad m => p -> m Homepage
+redirect updateList = return myHome
 
--- server :: Server UrlAPI
--- server = return urls1
-
--- urlsAPI :: Proxy UrlAPI
--- urlsAPI = Proxy
-
--- app :: Application
--- app = serve urlsAPI server
+addUrlHandler :: [a] -> a -> [a]
+addUrlHandler a xs = xs : a
 

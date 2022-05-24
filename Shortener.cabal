@@ -40,6 +40,7 @@ library
     , bytestring
     , containers
     , directory
+    , http-api-data
     , http-media
     , lucid
     , mtl
@@ -72,6 +73,7 @@ executable Shortener-exe
     , bytestring
     , containers
     , directory
+    , http-api-data
     , http-media
     , lucid
     , mtl
@@ -108,6 +110,7 @@ test-suite Shortener-test
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , http-api-data
     , http-media
     , lucid
     , mtl

@@ -40,6 +40,7 @@ dependencies:
 - lucid
 - servant-blaze
 - containers
+- http-api-data
 library:
   source-dirs: src
 
