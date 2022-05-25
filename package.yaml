@@ -41,6 +41,7 @@ dependencies:
 - servant-blaze
 - containers
 - http-api-data
+- stm
 library:
   source-dirs: src
 

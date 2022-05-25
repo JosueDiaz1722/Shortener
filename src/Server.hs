@@ -7,6 +7,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
 module Server where
 
@@ -44,6 +45,8 @@ import Data.Text
 import Control.Monad (forM_)
 import Web.FormUrlEncoded(FromForm(..), ToForm(..))
 import qualified Data.Text as T
+import GHC.IO (unsafePerformIO)
+import Control.Concurrent.STM.TVar (TVar, newTVar, readTVar,writeTVar)
 
 
 
@@ -53,8 +56,8 @@ type API = Get '[HTML] Homepage
 type Homepage = H.Html
 
 
-myHome :: Homepage
-myHome = 
+myHome :: [URL_data_type] -> Homepage
+myHome xs =
     H.html $
         H.body $ do
             H.h1 "Shortener"
@@ -62,9 +65,10 @@ myHome =
               H.input H.! A.type_ "text" H.! A.name "url_path"
               H.input H.! A.type_ "submit" ! A.action "/urls"
             H.table $
-              forM_(urlList2) $ \(url) ->
+              forM_(xs) $ \(url) ->
                   H.tr $ do
                   H.td (H.text (print_url url))
+                  
 app :: Application
 app = serve api server
 
@@ -72,6 +76,7 @@ app = serve api server
 print_url :: URL_data_type -> Text
 print_url =  url_path
 
+newtype URL_type = URL T.Text deriving (Show, Generic)
 
 data URL_data_type = URL_data_type
  { url_path    :: !T.Text
@@ -88,27 +93,31 @@ type UrlsAPI =  Get '[HTML] Homepage
             ReqBody '[FormUrlEncoded] URL_data_type
             :> Post '[HTML] Homepage
             
-
+-- new type for just one value. 
 api :: Proxy UrlsAPI
 api = Proxy
 
 server :: Server UrlsAPI
-server = return myHome :<|> return urlList2 :<|> add_url2
+server = return (myHome urlList2) :<|> return urlList2 :<|> add_url2
 
 urlList2 :: [URL_data_type]
 urlList2 =
-  [ URL_data_type "Isaac Newton"
-  , URL_data_type "Albert Einstein"
+  [ URL_data_type "https://www.stackbuilders.com/blog/getting-started-with-haskell-projects-using-scotty/"
+  , URL_data_type "https://www.stackbuilders.com"
   ]
 
 
-
+data State = State
+  { urls :: TVar [URL_type]
+  }
 add_url2 :: Monad m => URL_data_type -> m Homepage
 add_url2 url = redirect (addUrlHandler urlList2 url)
 
-redirect :: Monad m => p -> m Homepage
-redirect updateList = return myHome
+redirect :: Monad m => [URL_data_type] -> m Homepage
+redirect updateList = return $ myHome updateList
 
-addUrlHandler :: [a] -> a -> [a]
-addUrlHandler a xs = xs : a
+addUrlHandler :: [URL_data_type] -> URL_data_type -> [URL_data_type]
+addUrlHandler a xs = do
+  pure (unsafePerformIO $ putStrLn ("ads"))
+  xs : a
 

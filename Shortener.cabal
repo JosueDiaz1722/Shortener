@@ -48,6 +48,7 @@ library
     , servant
     , servant-blaze
     , servant-server
+    , stm
     , string-conversions
     , text
     , time
@@ -81,6 +82,7 @@ executable Shortener-exe
     , servant
     , servant-blaze
     , servant-server
+    , stm
     , string-conversions
     , text
     , time
@@ -118,6 +120,7 @@ test-suite Shortener-test
     , servant
     , servant-blaze
     , servant-server
+    , stm
     , string-conversions
     , text
     , time
